@@ -322,9 +322,10 @@ export function createApp(): Hono {
       x: number | null;
       m: number | null;
       prov: boolean;
+      src: string | null;
     }>(`
       SELECT year, sum(exports_usd) AS x, sum(imports_usd) AS m,
-             bool_or(provisional) AS prov
+             bool_or(provisional) AS prov, min(exports_source) AS src
       FROM v_country_totals
       WHERE country IN ${inCodes(ref.codes)}
       GROUP BY 1 ORDER BY 1
@@ -337,6 +338,7 @@ export function createApp(): Hono {
         exportsUsd: numOrNull(r.x),
         importsUsd: numOrNull(r.m),
         provisional: Boolean(r.prov),
+        ...(r.src === "mirror" ? { estimated: true } : {}),
       })),
       entityNotes: ref.entityNotes,
     };

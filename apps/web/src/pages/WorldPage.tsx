@@ -1,13 +1,20 @@
+import { Suspense, lazy } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import type { WorldCountryEntry } from "@world-trade/shared/api";
-import { TradeMap } from "../components/TradeMap.tsx";
 import { YearScrubber } from "../components/YearScrubber.tsx";
 import { fetchMeta, fetchTopFlows, fetchWorld } from "../lib/api.ts";
 import { fmtBalance, fmtShare, fmtUsd, fmtUsdExact } from "../lib/format.ts";
 import { MEASURES, measureValue, type Measure } from "../lib/measures.ts";
+import { usePageTitle } from "../lib/title.ts";
 import { useTheme } from "../theme.tsx";
 import { worldRoute } from "../router.tsx";
+
+// MapLibre + deck.gl are the heaviest chunks in the app — only the map
+// route should pay for them.
+const TradeMap = lazy(() =>
+  import("../components/TradeMap.tsx").then((m) => ({ default: m.TradeMap })),
+);
 
 function RankedList({
   countries,
@@ -143,6 +150,7 @@ function SelectedPanel({
 }
 
 export function WorldPage() {
+  usePageTitle("The world in trade");
   const search = worldRoute.useSearch();
   const navigate = useNavigate();
   const { theme } = useTheme();
@@ -264,16 +272,20 @@ export function WorldPage() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_300px]">
         <div className="space-y-4">
-          <div className="h-[540px]">
-            <TradeMap
-              countries={w.countries}
-              flows={flows.data?.flows ?? []}
-              measure={measure}
-              provisional={w.provisional}
-              selected={sel}
-              onSelect={(iso3) => setSearch({ sel: iso3 ?? undefined })}
-              theme={theme}
-            />
+          <div className="h-[420px] sm:h-[540px]">
+            <Suspense
+              fallback={<div className="skeleton h-full w-full rounded" />}
+            >
+              <TradeMap
+                countries={w.countries}
+                flows={flows.data?.flows ?? []}
+                measure={measure}
+                provisional={w.provisional}
+                selected={sel}
+                onSelect={(iso3) => setSearch({ sel: iso3 ?? undefined })}
+                theme={theme}
+              />
+            </Suspense>
           </div>
           <YearScrubber
             years={meta.data.years}

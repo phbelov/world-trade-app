@@ -5,6 +5,7 @@ import type { PairDirection, PairSummary } from "@world-trade/shared/api";
 import { TrendChart } from "../components/TrendChart.tsx";
 import { ApiError, fetchMeta, fetchPair, fetchPairTrend } from "../lib/api.ts";
 import { fmtShare, fmtUsd, fmtUsdExact } from "../lib/format.ts";
+import { usePageTitle } from "../lib/title.ts";
 import { pairRoute } from "../router.tsx";
 
 function DirectionColumn({
@@ -124,6 +125,9 @@ export function PairPage() {
     queryKey: ["pairTrend", a, b],
     queryFn: () => fetchPairTrend(a, b),
   });
+  usePageTitle(
+    summary.data ? `${summary.data.a.name} ⇄ ${summary.data.b.name}` : undefined,
+  );
 
   if (meta.isPending || summary.isPending) {
     return (
@@ -164,7 +168,7 @@ export function PairPage() {
     <div className="mt-8 space-y-10">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="font-display text-4xl font-semibold tracking-tight">
+          <h1 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">
             <Link
               to="/country/$iso3"
               params={{ iso3: s.a.iso3 }}

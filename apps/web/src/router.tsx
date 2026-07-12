@@ -4,6 +4,7 @@ import {
   createRouter,
 } from "@tanstack/react-router";
 import { RootLayout } from "./layout/RootLayout.tsx";
+import { ComparePage } from "./pages/ComparePage.tsx";
 import { CountryPage } from "./pages/CountryPage.tsx";
 import { PairPage } from "./pages/PairPage.tsx";
 import { ProductPage } from "./pages/ProductPage.tsx";
@@ -63,11 +64,36 @@ export const productRoute = createRoute({
   component: ProductPage,
 });
 
+export interface CompareSearch {
+  /** Comma-separated ISO3 list, e.g. "USA,CHN,DEU" */
+  countries?: string;
+  measure?: Measure;
+  year?: number;
+}
+
+export const compareRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/compare",
+  validateSearch: (search: Record<string, unknown>): CompareSearch => {
+    const out: CompareSearch = { ...yearSearch(search) };
+    if (isMeasure(search.measure)) out.measure = search.measure;
+    const countries = String(search.countries ?? "")
+      .toUpperCase()
+      .split(",")
+      .filter((c) => /^[A-Z]{3}$/.test(c))
+      .slice(0, 6);
+    if (countries.length > 0) out.countries = countries.join(",");
+    return out;
+  },
+  component: ComparePage,
+});
+
 const routeTree = rootRoute.addChildren([
   worldRoute,
   countryRoute,
   pairRoute,
   productRoute,
+  compareRoute,
 ]);
 
 export const router = createRouter({ routeTree });

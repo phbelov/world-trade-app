@@ -220,6 +220,8 @@ export interface TrendPoint {
   exportsUsd: number | null;
   importsUsd: number | null;
   provisional: boolean;
+  /** Exports mirror-estimated from partners' declarations (a lower bound). */
+  estimated?: boolean;
 }
 
 export interface CountryTrend {

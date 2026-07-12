@@ -9,6 +9,7 @@ import {
   fetchProductTrend,
 } from "../lib/api.ts";
 import { fmtShare, fmtUsd, fmtUsdExact } from "../lib/format.ts";
+import { usePageTitle } from "../lib/title.ts";
 import { productRoute } from "../router.tsx";
 
 export function ProductPage() {
@@ -35,6 +36,7 @@ export function ProductPage() {
     queryKey: ["productTrend", code],
     queryFn: () => fetchProductTrend(code),
   });
+  usePageTitle(summary.data?.info.name ?? code);
 
   if (meta.isPending || summary.isPending) {
     return (

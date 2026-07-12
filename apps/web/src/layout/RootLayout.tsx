@@ -24,14 +24,33 @@ export function RootLayout() {
     <div className="min-h-dvh flex flex-col">
       <header className="border-b border-line">
         <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-4 px-6">
-          <Link to="/" className="shrink-0">
-            <span className="font-display text-2xl font-semibold tracking-tight">
-              World Trade
-            </span>
-            <span className="ml-2 text-[11px] font-medium uppercase tracking-[0.18em] text-ink-muted">
-              Explorer
-            </span>
-          </Link>
+          <div className="flex min-w-0 items-center gap-6">
+            <Link to="/" className="shrink-0">
+              <span className="font-display text-2xl font-semibold tracking-tight">
+                World Trade
+              </span>
+              <span className="ml-2 hidden text-[11px] font-medium uppercase tracking-[0.18em] text-ink-muted md:inline">
+                Explorer
+              </span>
+            </Link>
+            <nav className="flex items-center gap-4 text-sm" aria-label="Main">
+              <Link
+                to="/"
+                className="text-ink-muted hover:text-ink"
+                activeOptions={{ exact: true }}
+                activeProps={{ className: "font-medium text-ink" }}
+              >
+                Map
+              </Link>
+              <Link
+                to="/compare"
+                className="text-ink-muted hover:text-ink"
+                activeProps={{ className: "font-medium text-ink" }}
+              >
+                Compare
+              </Link>
+            </nav>
+          </div>
           <div className="flex items-center gap-3">
             <CommandPalette />
             <ThemeToggle />

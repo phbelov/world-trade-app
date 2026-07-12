@@ -86,6 +86,8 @@ export function TrendChart({ points, labels }: Props) {
         {shown.provisional && (
           <span className="text-xs font-medium text-provisional">
             provisional
+            {shown.estimated &&
+              " · estimated from partners' reports (lower bound)"}
           </span>
         )}
       </div>
@@ -174,7 +176,11 @@ export function TrendChart({ points, labels }: Props) {
             cx={x(shown.year)}
             cy={y(shown.exportsUsd)}
             r={3.5}
-            className="fill-export"
+            className={
+              // Hollow marker: mirror-estimated exports are a lower bound.
+              shown.estimated ? "fill-bg stroke-export" : "fill-export"
+            }
+            strokeWidth={shown.estimated ? 2 : 0}
           />
         )}
         {shown.importsUsd != null && (

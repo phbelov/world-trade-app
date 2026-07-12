@@ -6,6 +6,7 @@ import { RankedBars } from "../components/RankedBars.tsx";
 import { TrendChart } from "../components/TrendChart.tsx";
 import { ApiError, fetchMeta, fetchSummary, fetchTrend } from "../lib/api.ts";
 import { fmtBalance, fmtRank, fmtUsd, fmtUsdExact } from "../lib/format.ts";
+import { usePageTitle } from "../lib/title.ts";
 import { countryRoute } from "../router.tsx";
 
 function Stat({
@@ -137,6 +138,7 @@ export function CountryPage() {
     queryKey: ["trend", iso3],
     queryFn: () => fetchTrend(iso3),
   });
+  usePageTitle(summary.data?.name ?? iso3);
 
   if (meta.isPending || summary.isPending) return <ProfileSkeleton />;
 
@@ -174,7 +176,7 @@ export function CountryPage() {
     <div className="mt-8 space-y-10">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="font-display text-5xl font-semibold tracking-tight">
+          <h1 className="font-display text-4xl font-semibold tracking-tight sm:text-5xl">
             {s.name}
           </h1>
           <p className="mt-1 text-sm text-ink-muted">

@@ -73,6 +73,21 @@ body {
   background: color-mix(in oklab, var(--export) 25%, transparent);
 }
 
+:focus-visible {
+  outline: 2px solid var(--export);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+    opacity: 0.6;
+  }
+  * {
+    transition-duration: 0.01ms !important;
+  }
+}
+
 @keyframes pulse-soft {
   50% {
     opacity: 0.45;
