@@ -14,42 +14,9 @@ import type {
 } from "@world-trade/shared/api";
 import { query } from "./db.ts";
 import { getCatalog } from "./datasets.ts";
-
-/** DuckDB returns BIGINT as BigInt; JSON needs number. */
-const num = (v: unknown): number => Number(v);
-const numOrNull = (v: unknown): number | null => (v == null ? null : Number(v));
-
-interface CountryRef {
-  /** All fact codes sharing the ISO3 (current + historical, year-disjoint). */
-  codes: number[];
-  name: string;
-  entityNotes: EntityNote[];
-}
-
-async function resolveCountry(iso3: string): Promise<CountryRef | null> {
-  const rows = await query<{
-    code: number;
-    display_name: string;
-    valid_until: number | null;
-  }>(`
-    SELECT code, display_name, valid_until FROM dim_countries
-    WHERE iso3 = '${iso3}' ORDER BY valid_until NULLS LAST
-  `);
-  if (rows.length === 0) return null;
-  const current = rows.find((r) => r.valid_until == null) ?? rows[0]!;
-  return {
-    codes: rows.map((r) => num(r.code)),
-    name: current.display_name,
-    entityNotes: rows
-      .filter((r) => r.valid_until != null && num(r.code) !== num(current.code))
-      .map((r) => ({
-        throughYear: num(r.valid_until),
-        note: `Reported as ${r.display_name} through ${num(r.valid_until)}`,
-      })),
-  };
-}
-
-const inCodes = (codes: number[]) => `(${codes.join(", ")})`;
+import { inCodes, num, numOrNull, resolveCountry } from "./lib.ts";
+import { registerPairRoutes } from "./routes/pair.ts";
+import { registerProductRoutes } from "./routes/product.ts";
 
 async function partnersFor(
   codes: number[],
@@ -375,6 +342,9 @@ export function createApp(): Hono {
     };
     return c.json(trend);
   });
+
+  registerPairRoutes(app);
+  registerProductRoutes(app);
 
   app.onError((err, c) => {
     console.error(err);

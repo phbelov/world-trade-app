@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import type { DatasetVersion } from "@world-trade/shared";
 import type { YearInfo } from "@world-trade/shared/api";
+import { HS_CHAPTERS } from "@world-trade/shared/hs-chapters";
 import { PARQUET_DIR, exec } from "./db.ts";
 
 export interface Catalog {
@@ -11,6 +12,8 @@ export interface Catalog {
   defaultYear: number;
   /** True when a provisional (Comtrade) dataset is mounted. */
   hasProvisional: boolean;
+  /** Full-grain HS6 facts for one reconciled year (hive partition path). */
+  factsGlobForYear: (year: number) => string;
 }
 
 let catalog: Catalog | null = null;
@@ -64,6 +67,15 @@ export async function initCatalog(): Promise<Catalog> {
            coalesce(section_name, 'Unspecified') AS section_name
     FROM dim_products
   `);
+  const chapterValues = Object.entries(HS_CHAPTERS)
+    .map(([code, name]) => `('${code}', '${name.replace(/'/g, "''")}')`)
+    .join(",\n      ");
+  await exec(`
+    CREATE OR REPLACE VIEW dim_chapter_names AS
+    SELECT * FROM (VALUES
+      ${chapterValues}
+    ) AS t(hs2, chapter_name)
+  `);
 
   const baciCube = (name: string) =>
     `read_parquet('${glob(baci.id, "cubes", name, "*", "*.parquet")}', hive_partitioning = true)`;
@@ -116,6 +128,26 @@ export async function initCatalog(): Promise<Catalog> {
     }
   `);
 
+  const bilateralHs2Prov = provCube("bilateral_hs2");
+  await exec(`
+    CREATE OR REPLACE VIEW v_bilateral_hs2 AS
+    SELECT year, exporter, importer, hs2, value_usd, false AS provisional
+    FROM ${baciCube("bilateral_hs2")}
+    ${
+      bilateralHs2Prov
+        ? `UNION ALL
+    SELECT year, exporter, importer, hs2, value_usd, true FROM ${bilateralHs2Prov}`
+        : ""
+    }
+  `);
+  await exec(`
+    CREATE OR REPLACE VIEW v_country_flow_hs4 AS
+    SELECT * FROM ${baciCube("country_flow_hs4")}
+  `);
+  await exec(`
+    CREATE OR REPLACE VIEW v_product_world AS
+    SELECT * FROM ${baciCube("product_world")}
+  `);
   await exec(`
     CREATE OR REPLACE VIEW v_metrics_country AS
     SELECT * FROM ${baciCube("metrics_country")}
@@ -140,6 +172,8 @@ export async function initCatalog(): Promise<Catalog> {
     years,
     defaultYear: baci.lastYear,
     hasProvisional: Boolean(provisional),
+    factsGlobForYear: (year: number) =>
+      glob(baci.id, "facts", `year=${year}`, "*.parquet"),
   };
   return catalog;
 }

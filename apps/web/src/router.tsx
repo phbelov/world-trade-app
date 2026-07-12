@@ -5,8 +5,15 @@ import {
 } from "@tanstack/react-router";
 import { RootLayout } from "./layout/RootLayout.tsx";
 import { CountryPage } from "./pages/CountryPage.tsx";
+import { PairPage } from "./pages/PairPage.tsx";
+import { ProductPage } from "./pages/ProductPage.tsx";
 import { WorldPage } from "./pages/WorldPage.tsx";
 import { isMeasure, type Measure } from "./lib/measures.ts";
+
+const yearSearch = (search: Record<string, unknown>): { year?: number } => {
+  const y = Number(search.year);
+  return Number.isInteger(y) && y >= 1900 && y <= 2100 ? { year: y } : {};
+};
 
 export const rootRoute = createRootRoute({ component: RootLayout });
 
@@ -38,14 +45,30 @@ export interface CountrySearch {
 export const countryRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/country/$iso3",
-  validateSearch: (search: Record<string, unknown>): CountrySearch => {
-    const y = Number(search.year);
-    return Number.isInteger(y) && y >= 1900 && y <= 2100 ? { year: y } : {};
-  },
+  validateSearch: yearSearch,
   component: CountryPage,
 });
 
-const routeTree = rootRoute.addChildren([worldRoute, countryRoute]);
+export const pairRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/pair/$a/$b",
+  validateSearch: yearSearch,
+  component: PairPage,
+});
+
+export const productRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/product/$code",
+  validateSearch: yearSearch,
+  component: ProductPage,
+});
+
+const routeTree = rootRoute.addChildren([
+  worldRoute,
+  countryRoute,
+  pairRoute,
+  productRoute,
+]);
 
 export const router = createRouter({ routeTree });
 

@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import type { CountryYearSummary } from "@world-trade/shared/api";
 import { fmtShare, fmtUsd } from "../lib/format.ts";
 
@@ -110,16 +111,27 @@ export function IntelligencePanel({
                 className="flex items-center justify-between gap-4 px-4 py-2.5 text-sm"
               >
                 <span className="min-w-0">
-                  <span className="block truncate" title={d.productName}>
+                  <Link
+                    to="/product/$code"
+                    params={{ code: d.hs6 }}
+                    search={{ year: summary.year }}
+                    className="block truncate hover:underline"
+                    title={d.productName}
+                  >
                     {d.productName}
-                  </span>
+                  </Link>
                   <span className="text-xs text-ink-muted tnum">
                     HS {d.hs6} · {fmtUsd(d.totalImportUsd)} imported
                   </span>
                 </span>
-                <span className="shrink-0 rounded bg-provisional-bg px-2 py-1 text-xs font-medium text-provisional tnum">
+                <Link
+                  to="/pair/$a/$b"
+                  params={{ a: summary.iso3, b: d.supplierIso3 }}
+                  search={{ year: summary.year }}
+                  className="shrink-0 rounded bg-provisional-bg px-2 py-1 text-xs font-medium text-provisional tnum hover:opacity-80"
+                >
                   {fmtShare(d.share)} from {d.supplierName}
-                </span>
+                </Link>
               </li>
             ))}
           </ul>

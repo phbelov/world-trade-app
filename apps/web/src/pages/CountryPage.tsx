@@ -124,6 +124,7 @@ function ProfileSkeleton() {
 export function CountryPage() {
   const { iso3 } = countryRoute.useParams();
   const { year } = countryRoute.useSearch();
+  const navigate = useNavigate();
 
   const meta = useQuery({ queryKey: ["meta"], queryFn: fetchMeta });
   const effectiveYear = year ?? meta.data?.defaultYear;
@@ -272,6 +273,7 @@ export function CountryPage() {
           <div className="grid grid-cols-1 gap-10 md:grid-cols-2">
             <RankedBars
               title="Top export destinations"
+              subtitle="Click a partner to open the bilateral view"
               rows={s.exportPartners.map((p) => ({
                 key: p.iso3,
                 label: p.name,
@@ -280,9 +282,17 @@ export function CountryPage() {
               }))}
               color="export"
               showRank
+              onRowClick={(partner) =>
+                navigate({
+                  to: "/pair/$a/$b",
+                  params: { a: iso3, b: partner },
+                  search: { year: s.year },
+                })
+              }
             />
             <RankedBars
               title="Top import sources"
+              subtitle="Click a partner to open the bilateral view"
               rows={s.importPartners.map((p) => ({
                 key: p.iso3,
                 label: p.name,
@@ -291,6 +301,13 @@ export function CountryPage() {
               }))}
               color="import"
               showRank
+              onRowClick={(partner) =>
+                navigate({
+                  to: "/pair/$a/$b",
+                  params: { a: iso3, b: partner },
+                  search: { year: s.year },
+                })
+              }
             />
           </div>
 

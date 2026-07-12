@@ -2,6 +2,11 @@ import type {
   CountryTrend,
   CountryYearSummary,
   Meta,
+  PairSummary,
+  PairTrend,
+  ProductSearchResult,
+  ProductSummary,
+  ProductTrend,
   TopFlows,
   WorldSnapshot,
 } from "@world-trade/shared/api";
@@ -43,6 +48,28 @@ export const fetchTrend = (iso3: string): Promise<CountryTrend> =>
 
 export const fetchWorld = (year?: number): Promise<WorldSnapshot> =>
   get(`/api/world${year ? `?year=${year}` : ""}`);
+
+export const fetchPair = (
+  a: string,
+  b: string,
+  year?: number,
+): Promise<PairSummary> =>
+  get(`/api/pair/${a}/${b}${year ? `?year=${year}` : ""}`);
+
+export const fetchPairTrend = (a: string, b: string): Promise<PairTrend> =>
+  get(`/api/pair/${a}/${b}/trend`);
+
+export const fetchProduct = (
+  code: string,
+  year?: number,
+): Promise<ProductSummary> =>
+  get(`/api/product/${code}${year ? `?year=${year}` : ""}`);
+
+export const fetchProductTrend = (code: string): Promise<ProductTrend> =>
+  get(`/api/product/${code}/trend`);
+
+export const searchProducts = (q: string): Promise<ProductSearchResult[]> =>
+  get(`/api/products/search?q=${encodeURIComponent(q)}`);
 
 export const fetchTopFlows = (
   year?: number,

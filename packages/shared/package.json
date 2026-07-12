@@ -6,6 +6,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./hs-sections": "./src/hs-sections.ts",
+    "./hs-chapters": "./src/hs-chapters.ts",
     "./api": "./src/api.ts"
   },
   "scripts": {

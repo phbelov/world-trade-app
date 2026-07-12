@@ -13,13 +13,18 @@ const axisFmt = format("$.2~s");
 
 interface Props {
   points: TrendPoint[];
+  /** Legend labels for the two series; defaults to Exports/Imports. */
+  labels?: { a: string; b: string };
 }
 
 /**
- * Dual-line trend of exports and imports. Reconciled years are solid;
- * the provisional segment is dashed. The legend doubles as a hover readout.
+ * Dual-line trend chart (teal series A / orange series B). Reconciled years
+ * are solid; the provisional segment is dashed. The legend doubles as a
+ * hover readout.
  */
-export function TrendChart({ points }: Props) {
+export function TrendChart({ points, labels }: Props) {
+  const labelA = labels?.a ?? "Exports";
+  const labelB = labels?.b ?? "Imports";
   const [hoverYear, setHoverYear] = useState<number | null>(null);
 
   const { x, y, ticksY, lastReconciledIdx } = useMemo(() => {
@@ -64,18 +69,20 @@ export function TrendChart({ points }: Props) {
         <span className="font-medium text-ink">{shown.year}</span>
         <span>
           <span className="mr-1.5 inline-block h-2.5 w-2.5 rounded-full bg-export" />
-          Exports{" "}
+          {labelA}{" "}
           <span className="font-medium">
             {shown.exportsUsd != null ? fmtUsd(shown.exportsUsd) : "—"}
           </span>
         </span>
-        <span>
-          <span className="mr-1.5 inline-block h-2.5 w-2.5 rounded-full bg-import" />
-          Imports{" "}
-          <span className="font-medium">
-            {shown.importsUsd != null ? fmtUsd(shown.importsUsd) : "—"}
+        {labelB && (
+          <span>
+            <span className="mr-1.5 inline-block h-2.5 w-2.5 rounded-full bg-import" />
+            {labelB}{" "}
+            <span className="font-medium">
+              {shown.importsUsd != null ? fmtUsd(shown.importsUsd) : "—"}
+            </span>
           </span>
-        </span>
+        )}
         {shown.provisional && (
           <span className="text-xs font-medium text-provisional">
             provisional
@@ -86,7 +93,7 @@ export function TrendChart({ points }: Props) {
         viewBox={`0 0 ${W} ${H}`}
         className="w-full"
         role="img"
-        aria-label={`Exports and imports from ${points[0]!.year} to ${last.year}`}
+        aria-label={`${labelA} and ${labelB} from ${points[0]!.year} to ${last.year}`}
         onMouseMove={onMove}
         onMouseLeave={() => setHoverYear(null)}
       >

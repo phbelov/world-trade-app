@@ -128,6 +128,93 @@ export interface TopFlows {
   flows: FlowEntry[];
 }
 
+export type HsLevel = "hs2" | "hs4" | "hs6";
+
+export interface PairProductEntry {
+  code: string;
+  name: string;
+  level: HsLevel;
+  valueUsd: number;
+  /** Share of this direction's total, 0..1 */
+  share: number;
+}
+
+export interface PairDirection {
+  /** null = no flows observed this year (never zero) */
+  totalUsd: number | null;
+  /** This flow as a share of the exporting side's total exports */
+  shareOfExportsTotal: number | null;
+  /** Top products; HS6 for reconciled years, HS2 for provisional */
+  products: PairProductEntry[];
+  /** Total product lines observed (products[] may be truncated) */
+  productCount: number;
+}
+
+export interface PairSummary {
+  a: CountryOption;
+  b: CountryOption;
+  year: number;
+  provisional: boolean;
+  aToB: PairDirection;
+  bToA: PairDirection;
+  entityNotes: EntityNote[];
+}
+
+export interface PairTrendPoint {
+  year: number;
+  aToBUsd: number | null;
+  bToAUsd: number | null;
+  provisional: boolean;
+}
+
+export interface PairTrend {
+  a: CountryOption;
+  b: CountryOption;
+  points: PairTrendPoint[];
+  entityNotes: EntityNote[];
+}
+
+export interface ProductInfo {
+  code: string;
+  level: HsLevel;
+  name: string;
+  sectionId: string | null;
+  sectionName: string | null;
+  chapterCode: string;
+  chapterName: string;
+}
+
+export interface ProductSummary {
+  info: ProductInfo;
+  year: number;
+  worldTradeUsd: number;
+  /** Value-weighted share of world trade with tonnage reported; null for hs2/hs4 */
+  quantityValueCoverage: number | null;
+  /** USD per tonne; only for HS6 with adequate coverage */
+  unitValueUsdPerTonne: number | null;
+  topExporters: PartnerEntry[];
+  topImporters: PartnerEntry[];
+  topRoutes: { fromIso3: string; fromName: string; toIso3: string; toName: string; valueUsd: number }[];
+}
+
+export interface ProductTrendPoint {
+  year: number;
+  valueUsd: number;
+  quantityTonnes: number | null;
+  unitValueUsdPerTonne: number | null;
+}
+
+export interface ProductTrend {
+  code: string;
+  points: ProductTrendPoint[];
+}
+
+export interface ProductSearchResult {
+  code: string;
+  name: string;
+  level: HsLevel;
+}
+
 export interface TrendPoint {
   year: number;
   exportsUsd: number | null;

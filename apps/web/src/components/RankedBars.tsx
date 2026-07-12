@@ -9,11 +9,13 @@ export interface BarRow {
 
 interface Props {
   title: string;
-  subtitle?: string;
+  subtitle?: string | undefined;
   rows: BarRow[];
   color: "export" | "import";
   maxRows?: number;
   showRank?: boolean;
+  /** When set, rows become clickable (e.g. partner → bilateral view). */
+  onRowClick?: ((key: string) => void) | undefined;
 }
 
 /** Editorial ranked list: label, proportional bar, value, share. */
@@ -24,6 +26,7 @@ export function RankedBars({
   color,
   maxRows = 10,
   showRank = false,
+  onRowClick,
 }: Props) {
   const shown = rows.slice(0, maxRows);
   const maxShare = shown[0]?.share ?? 1;
@@ -38,32 +41,53 @@ export function RankedBars({
         <p className="mt-3 text-sm text-ink-muted">No data reported.</p>
       ) : (
         <ol className="mt-3 space-y-2.5">
-          {shown.map((r, i) => (
-            <li key={r.key} className="text-sm">
-              <div className="flex items-baseline justify-between gap-3">
-                <span className="min-w-0 truncate" title={r.label}>
-                  {showRank && (
-                    <span className="mr-2 inline-block w-4 text-right text-xs text-ink-muted tnum">
-                      {i + 1}
+          {shown.map((r, i) => {
+            const inner = (
+              <>
+                <div className="flex items-baseline justify-between gap-3">
+                  <span className="min-w-0 truncate" title={r.label}>
+                    {showRank && (
+                      <span className="mr-2 inline-block w-4 text-right text-xs text-ink-muted tnum">
+                        {i + 1}
+                      </span>
+                    )}
+                    <span className={onRowClick ? "group-hover:underline" : ""}>
+                      {r.label}
                     </span>
-                  )}
-                  {r.label}
-                </span>
-                <span className="shrink-0 tnum">
-                  <span title={fmtUsdExact(r.valueUsd)}>{fmtUsd(r.valueUsd)}</span>
-                  <span className="ml-2 inline-block w-10 text-right text-xs text-ink-muted">
-                    {fmtShare(r.share)}
                   </span>
-                </span>
-              </div>
-              <div className="mt-1 h-1.5 w-full rounded-full bg-line/60">
-                <div
-                  className={`h-full rounded-full ${barClass} opacity-80`}
-                  style={{ width: `${(r.share / maxShare) * 100}%` }}
-                />
-              </div>
-            </li>
-          ))}
+                  <span className="shrink-0 tnum">
+                    <span title={fmtUsdExact(r.valueUsd)}>
+                      {fmtUsd(r.valueUsd)}
+                    </span>
+                    <span className="ml-2 inline-block w-10 text-right text-xs text-ink-muted">
+                      {fmtShare(r.share)}
+                    </span>
+                  </span>
+                </div>
+                <div className="mt-1 h-1.5 w-full rounded-full bg-line/60">
+                  <div
+                    className={`h-full rounded-full ${barClass} opacity-80`}
+                    style={{ width: `${(r.share / maxShare) * 100}%` }}
+                  />
+                </div>
+              </>
+            );
+            return (
+              <li key={r.key} className="text-sm">
+                {onRowClick ? (
+                  <button
+                    type="button"
+                    onClick={() => onRowClick(r.key)}
+                    className="group block w-full text-left"
+                  >
+                    {inner}
+                  </button>
+                ) : (
+                  inner
+                )}
+              </li>
+            );
+          })}
         </ol>
       )}
     </section>
