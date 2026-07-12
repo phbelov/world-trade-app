@@ -1,0 +1,84 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/*
+ * Editorial palette: warm paper neutrals, ink typography, and a disciplined
+ * two-hue data encoding used consistently everywhere —
+ *   exports = deep teal, imports = burnt orange (colorblind-safe pairing).
+ * Dark mode is designed, not inverted: same hues, adjusted for luminance.
+ */
+:root {
+  --bg: #faf9f5;
+  --surface: #ffffff;
+  --ink: #1d1c18;
+  --ink-muted: #6f6b60;
+  --line: #e6e3d8;
+  --line-strong: #cfcabb;
+  --export: #0f766e;
+  --import: #c2620e;
+  --positive: #15803d;
+  --negative: #b91c1c;
+  --provisional: #92400e;
+  --provisional-bg: #fef3c7;
+}
+
+[data-theme="dark"] {
+  --bg: #14161a;
+  --surface: #1b1e24;
+  --ink: #e8e6df;
+  --ink-muted: #98948a;
+  --line: #2a2d35;
+  --line-strong: #3d414c;
+  --export: #2dd4bf;
+  --import: #fb923c;
+  --positive: #4ade80;
+  --negative: #f87171;
+  --provisional: #fbbf24;
+  --provisional-bg: #3a2e12;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-export: var(--export);
+  --color-import: var(--import);
+  --color-positive: var(--positive);
+  --color-negative: var(--negative);
+  --color-provisional: var(--provisional);
+  --color-provisional-bg: var(--provisional-bg);
+  --font-display: "Newsreader Variable", ui-serif, Georgia, serif;
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+}
+
+html {
+  background: var(--bg);
+}
+
+body {
+  @apply bg-bg text-ink font-sans antialiased;
+  font-feature-settings: "cv11";
+}
+
+/* Numbers that align in columns */
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+::selection {
+  background: color-mix(in oklab, var(--export) 25%, transparent);
+}
+
+@keyframes pulse-soft {
+  50% {
+    opacity: 0.45;
+  }
+}
+.skeleton {
+  @apply bg-line rounded;
+  animation: pulse-soft 1.6s ease-in-out infinite;
+}

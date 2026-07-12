@@ -1,0 +1,15 @@
+{
+  "name": "world-trade",
+  "private": true,
+  "version": "0.0.1",
+  "description": "World Trade Explorer — economic intelligence platform for global trade flows",
+  "packageManager": "pnpm@10.13.1",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "ingest": "pnpm --filter @world-trade/ingest run cli",
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r typecheck"
+  }
+}

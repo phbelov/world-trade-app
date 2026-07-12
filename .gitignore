@@ -1,0 +1,17 @@
+# Dependencies
+node_modules/
+
+# Data artifacts — multi-GB, rebuilt by the ingest pipeline
+data/
+
+# Build output
+dist/
+*.tsbuildinfo
+
+# Environment / secrets (Comtrade API key etc.)
+.env
+.env.*
+!.env.example
+
+# OS / editor
+.DS_Store
