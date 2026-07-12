@@ -2,6 +2,7 @@
   "name": "world-trade",
   "private": true,
   "version": "0.0.1",
+  "type": "module",
   "description": "World Trade Explorer — economic intelligence platform for global trade flows",
   "packageManager": "pnpm@10.13.1",
   "engines": {
@@ -11,5 +12,14 @@
     "ingest": "pnpm --filter @world-trade/ingest run cli",
     "test": "pnpm -r test",
     "typecheck": "pnpm -r typecheck"
+  },
+  "dependencies": {
+    "@duckdb/node-api": "1.5.4-r.1",
+    "@world-trade/shared": "workspace:*",
+    "hono": "^4.7.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.1",
+    "typescript": "^5.9.3"
   }
 }

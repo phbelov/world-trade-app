@@ -71,7 +71,7 @@ async function topCountries(
     const side = flow === "X" ? "exporter" : "importer";
     rows = await query(`
       SELECT c.iso3, c.display_name AS name, sum(f.value_usd) AS v
-      FROM read_parquet('${getCatalog().factsGlobForYear(year)}') f
+      FROM ${getCatalog().factsExprForYear(year)} f
       JOIN dim_countries c ON f.${side} = c.code
       WHERE f.hs6 = '${code}'
       GROUP BY 1, 2 ORDER BY v DESC LIMIT 15
@@ -191,7 +191,7 @@ export function registerProductRoutes(app: Hono): void {
         : `
       SELECT ce.iso3 AS fi, ce.display_name AS fn,
              ci.iso3 AS ti, ci.display_name AS tn, sum(f.value_usd) AS v
-      FROM read_parquet('${catalog.factsGlobForYear(year)}') f
+      FROM ${catalog.factsExprForYear(year)} f
       JOIN dim_countries ce ON f.exporter = ce.code
       JOIN dim_countries ci ON f.importer = ci.code
       WHERE ${hs6Match(code)}

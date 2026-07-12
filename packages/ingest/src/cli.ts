@@ -3,6 +3,7 @@ import { SCRATCH_DIR } from "./config.ts";
 import { buildCubes } from "./cubes.ts";
 import { ingestBaciDims, ingestBaciFacts } from "./providers/baci.ts";
 import { fetchComtrade, transformComtrade } from "./providers/comtrade.ts";
+import { stageDeployData } from "./deploy-stage.ts";
 
 const USAGE = `Usage: pnpm ingest <command> [args]
 
@@ -44,6 +45,9 @@ async function main(): Promise<void> {
     case "comtrade:all":
       await fetchComtrade(period);
       await transformComtrade(period);
+      break;
+    case "deploy:stage":
+      await stageDeployData();
       break;
     default:
       console.error(USAGE);

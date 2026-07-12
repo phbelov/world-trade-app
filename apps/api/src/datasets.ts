@@ -3,7 +3,11 @@ import path from "node:path";
 import type { DatasetVersion } from "@world-trade/shared";
 import type { YearInfo } from "@world-trade/shared/api";
 import { HS_CHAPTERS } from "@world-trade/shared/hs-chapters";
-import { PARQUET_DIR, exec } from "./db.ts";
+import { PARQUET_DIR, REMOTE_DATA, exec } from "./db.ts";
+
+/** Public data release; overridable so a new release is just an env change. */
+const DEFAULT_REMOTE_BASE =
+  "https://github.com/phbelov/world-trade-app/releases/download/data-v1";
 
 export interface Catalog {
   datasets: DatasetVersion[];
@@ -12,8 +16,8 @@ export interface Catalog {
   defaultYear: number;
   /** True when a provisional (Comtrade) dataset is mounted. */
   hasProvisional: boolean;
-  /** Full-grain HS6 facts for one reconciled year (hive partition path). */
-  factsGlobForYear: (year: number) => string;
+  /** SQL source expression for one reconciled year of HS6 facts. */
+  factsExprForYear: (year: number) => string;
 }
 
 let catalog: Catalog | null = null;
@@ -23,21 +27,58 @@ export function getCatalog(): Catalog {
   return catalog;
 }
 
-function readManifests(): DatasetVersion[] {
-  if (!fs.existsSync(PARQUET_DIR)) {
-    throw new Error(
-      `No data at ${PARQUET_DIR} — run the ingest pipeline first (see README)`,
-    );
-  }
-  return fs
-    .readdirSync(PARQUET_DIR)
-    .map((dir) => path.join(PARQUET_DIR, dir, "manifest.json"))
-    .filter((p) => fs.existsSync(p))
-    .map((p) => JSON.parse(fs.readFileSync(p, "utf8")) as DatasetVersion);
+/**
+ * Where Parquet lives and how to address it.
+ *
+ * Local: the ingest pipeline's hive layout on disk.
+ * Remote: flat files on a static host (GitHub release assets have no
+ * directories), each cube consolidated to one all-years file with the year
+ * column baked in — so both sources expose identical column shapes.
+ */
+interface DataSource {
+  manifests(): Promise<DatasetVersion[]>;
+  /** Table expression for a cube, including a `year` column. */
+  cube(datasetId: string, name: string): string;
+  /** Table expression for one year of full-grain facts. */
+  facts(datasetId: string, year: number): string;
+  dim(datasetId: string, name: string): string;
 }
 
-const glob = (datasetId: string, ...parts: string[]) =>
-  path.join(PARQUET_DIR, datasetId, ...parts);
+const localSource: DataSource = {
+  async manifests() {
+    if (!fs.existsSync(PARQUET_DIR)) {
+      throw new Error(
+        `No data at ${PARQUET_DIR} — run the ingest pipeline first (see README)`,
+      );
+    }
+    return fs
+      .readdirSync(PARQUET_DIR)
+      .map((dir) => path.join(PARQUET_DIR, dir, "manifest.json"))
+      .filter((p) => fs.existsSync(p))
+      .map((p) => JSON.parse(fs.readFileSync(p, "utf8")) as DatasetVersion);
+  },
+  cube: (id, name) =>
+    `read_parquet('${path.join(PARQUET_DIR, id, "cubes", name, "*", "*.parquet")}', hive_partitioning = true)`,
+  facts: (id, year) =>
+    `read_parquet('${path.join(PARQUET_DIR, id, "facts", `year=${year}`, "*.parquet")}')`,
+  dim: (id, name) =>
+    `read_parquet('${path.join(PARQUET_DIR, id, "dims", `${name}.parquet`)}')`,
+};
+
+function remoteSource(base: string): DataSource {
+  return {
+    async manifests() {
+      const res = await fetch(`${base}/datasets.json`);
+      if (!res.ok) {
+        throw new Error(`failed to fetch ${base}/datasets.json: ${res.status}`);
+      }
+      return (await res.json()) as DatasetVersion[];
+    },
+    cube: (id, name) => `read_parquet('${base}/cube-${id}-${name}.parquet')`,
+    facts: (id, year) => `read_parquet('${base}/facts-${id}-${year}.parquet')`,
+    dim: (id, name) => `read_parquet('${base}/dims-${id}-${name}.parquet')`,
+  };
+}
 
 /**
  * Discover dataset manifests and create unified views: reconciled BACI years
@@ -46,7 +87,11 @@ const glob = (datasetId: string, ...parts: string[]) =>
  * dependencies, HS4) are exposed as BACI-only views.
  */
 export async function initCatalog(): Promise<Catalog> {
-  const datasets = readManifests();
+  const source: DataSource = REMOTE_DATA
+    ? remoteSource(process.env.WT_DATA_BASE_URL ?? DEFAULT_REMOTE_BASE)
+    : localSource;
+
+  const datasets = await source.manifests();
   const baci = datasets.find((d) => d.provider === "baci");
   if (!baci) throw new Error("BACI dataset missing — run `pnpm ingest baci:all`");
   const provisional = datasets.find(
@@ -55,11 +100,11 @@ export async function initCatalog(): Promise<Catalog> {
 
   await exec(`
     CREATE OR REPLACE VIEW dim_countries AS
-    SELECT * FROM read_parquet('${glob(baci.id, "dims", "countries.parquet")}')
+    SELECT * FROM ${source.dim(baci.id, "countries")}
   `);
   await exec(`
     CREATE OR REPLACE VIEW dim_products AS
-    SELECT * FROM read_parquet('${glob(baci.id, "dims", "products.parquet")}')
+    SELECT * FROM ${source.dim(baci.id, "products")}
   `);
   await exec(`
     CREATE OR REPLACE VIEW dim_chapters AS
@@ -77,12 +122,9 @@ export async function initCatalog(): Promise<Catalog> {
     ) AS t(hs2, chapter_name)
   `);
 
-  const baciCube = (name: string) =>
-    `read_parquet('${glob(baci.id, "cubes", name, "*", "*.parquet")}', hive_partitioning = true)`;
+  const baciCube = (name: string) => source.cube(baci.id, name);
   const provCube = (name: string) =>
-    provisional
-      ? `read_parquet('${glob(provisional.id, "cubes", name, "*", "*.parquet")}', hive_partitioning = true)`
-      : null;
+    provisional ? source.cube(provisional.id, name) : null;
 
   const totalsProv = provCube("country_totals");
   await exec(`
@@ -172,8 +214,7 @@ export async function initCatalog(): Promise<Catalog> {
     years,
     defaultYear: baci.lastYear,
     hasProvisional: Boolean(provisional),
-    factsGlobForYear: (year: number) =>
-      glob(baci.id, "facts", `year=${year}`, "*.parquet"),
+    factsExprForYear: (year: number) => source.facts(baci.id, year),
   };
   return catalog;
 }

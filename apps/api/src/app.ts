@@ -51,8 +51,12 @@ export function createApp(): Hono {
 
   app.use("/api/*", async (c, next) => {
     await next();
-    // Data changes only on re-ingest; readers may cache for an hour.
-    c.header("Cache-Control", "public, max-age=3600");
+    // Data changes only on re-ingest/redeploy: browsers may cache for an
+    // hour, the CDN indefinitely (Vercel purges its cache on deploy).
+    c.header(
+      "Cache-Control",
+      "public, max-age=3600, s-maxage=31536000, stale-while-revalidate=86400",
+    );
   });
 
   app.get("/api/meta", async (c) => {

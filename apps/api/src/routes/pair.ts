@@ -49,7 +49,7 @@ async function directionProducts(
   }
   const rows = await query<{ code: string; name: string; v: number; n: bigint }>(`
     SELECT f.hs6 AS code, p.name, sum(f.value_usd) AS v, count(*) OVER () AS n
-    FROM read_parquet('${getCatalog().factsGlobForYear(year)}') f
+    FROM ${getCatalog().factsExprForYear(year)} f
     JOIN dim_products p USING (hs6)
     WHERE f.exporter IN ${inCodes(exporter.codes)}
       AND f.importer IN ${inCodes(importer.codes)}
