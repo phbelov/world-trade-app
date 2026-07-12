@@ -6,6 +6,19 @@ relationships evolved since 1995.
 
 Built on real international trade statistics — no mock data.
 
+**Live**: [world-trade-app-philips-projects-13fc7f2e.vercel.app](https://world-trade-app-philips-projects-13fc7f2e.vercel.app)
+
+## Deployment
+
+Static frontend + one Vercel function (`api/index.js`) wrapping the whole
+Hono API, prebundled by esbuild at build time. The function reads Parquet
+over HTTPS via DuckDB httpfs from the
+[data-v1 release](https://github.com/phbelov/world-trade-app/releases/tag/data-v1)
+(pinned to `iad1`, next to GitHub's storage). API responses carry
+`s-maxage=1yr`, so each unique query computes once per deployment and the
+CDN serves the rest. Re-releasing data = upload new assets + bump
+`WT_DATA_BASE_URL` (defaults to data-v1).
+
 ## Data
 
 | | |

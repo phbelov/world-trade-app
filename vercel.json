@@ -4,6 +4,7 @@
   "buildCommand": "pnpm --filter @world-trade/web build && pnpm exec esbuild apps/api/src/serverless.ts --bundle --format=esm --platform=node --target=node22 --outfile=api-dist/server.mjs --external:@duckdb/node-api",
   "outputDirectory": "apps/web/dist",
   "framework": null,
+  "regions": ["iad1"],
   "functions": {
     "api/index.js": {
       "maxDuration": 60
