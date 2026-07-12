@@ -10,6 +10,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@deck.gl/core": "^9.3.6",
+    "@deck.gl/layers": "^9.3.6",
+    "@deck.gl/mapbox": "^9.3.6",
     "@fontsource-variable/inter": "^5.2.0",
     "@fontsource-variable/newsreader": "^5.2.0",
     "@tanstack/react-query": "^5.66.0",
@@ -17,8 +20,10 @@
     "@world-trade/shared": "workspace:*",
     "d3-array": "^3.2.4",
     "d3-format": "^3.1.0",
+    "d3-geo": "^3.1.1",
     "d3-scale": "^4.0.2",
     "d3-shape": "^3.2.0",
+    "maplibre-gl": "^5.24.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
   },
@@ -26,8 +31,10 @@
     "@tailwindcss/vite": "^4.1.0",
     "@types/d3-array": "^3.2.1",
     "@types/d3-format": "^3.0.4",
+    "@types/d3-geo": "^3.1.0",
     "@types/d3-scale": "^4.0.9",
     "@types/d3-shape": "^3.1.7",
+    "@types/geojson": "^7946.0.16",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
     "@vitejs/plugin-react": "^5.0.0",

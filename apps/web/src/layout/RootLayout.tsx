@@ -1,58 +1,20 @@
-import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import {
-  Link,
-  Outlet,
-  useNavigate,
-  useParams,
-} from "@tanstack/react-router";
+import { Link, Outlet } from "@tanstack/react-router";
+import { CommandPalette } from "../components/CommandPalette.tsx";
 import { fetchMeta } from "../lib/api.ts";
+import { useTheme } from "../theme.tsx";
 
 function ThemeToggle() {
-  const [theme, setTheme] = useState(
-    () => document.documentElement.dataset.theme ?? "light",
-  );
-  useEffect(() => {
-    document.documentElement.dataset.theme = theme;
-    localStorage.setItem("theme", theme);
-  }, [theme]);
-  const next = theme === "dark" ? "light" : "dark";
+  const { theme, toggle } = useTheme();
   return (
     <button
       type="button"
-      onClick={() => setTheme(next)}
-      aria-label={`Switch to ${next} mode`}
+      onClick={toggle}
+      aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
       className="rounded border border-line px-2.5 py-1.5 text-sm text-ink-muted hover:text-ink hover:border-line-strong transition-colors"
     >
       {theme === "dark" ? "☀" : "☾"}
     </button>
-  );
-}
-
-function CountrySelect() {
-  const meta = useQuery({ queryKey: ["meta"], queryFn: fetchMeta });
-  const params = useParams({ strict: false });
-  const navigate = useNavigate();
-  if (!meta.data) return <div className="skeleton h-9 w-56" aria-hidden />;
-  return (
-    <select
-      aria-label="Select country"
-      value={params.iso3 ?? "USA"}
-      onChange={(e) =>
-        navigate({
-          to: "/country/$iso3",
-          params: { iso3: e.target.value },
-          search: (prev) => prev,
-        })
-      }
-      className="h-9 w-56 rounded border border-line bg-surface px-2 text-sm text-ink hover:border-line-strong focus:outline-2 focus:outline-export"
-    >
-      {meta.data.countries.map((c) => (
-        <option key={c.iso3} value={c.iso3}>
-          {c.name}
-        </option>
-      ))}
-    </select>
   );
 }
 
@@ -71,7 +33,7 @@ export function RootLayout() {
             </span>
           </Link>
           <div className="flex items-center gap-3">
-            <CountrySelect />
+            <CommandPalette />
             <ThemeToggle />
           </div>
         </div>
@@ -84,7 +46,8 @@ export function RootLayout() {
           <p>
             Reconciled bilateral trade data: CEPII BACI (HS92), Etalab 2.0
             license. Provisional latest year: UN Comtrade, unreconciled
-            declarations. Values in current US dollars.
+            declarations. Country boundaries: Natural Earth. Values in current
+            US dollars.
           </p>
           {meta.data && (
             <p className="mt-1">

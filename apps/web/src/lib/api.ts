@@ -2,6 +2,8 @@ import type {
   CountryTrend,
   CountryYearSummary,
   Meta,
+  TopFlows,
+  WorldSnapshot,
 } from "@world-trade/shared/api";
 
 export class ApiError extends Error {
@@ -38,3 +40,19 @@ export const fetchSummary = (
 
 export const fetchTrend = (iso3: string): Promise<CountryTrend> =>
   get(`/api/country/${iso3}/trend`);
+
+export const fetchWorld = (year?: number): Promise<WorldSnapshot> =>
+  get(`/api/world${year ? `?year=${year}` : ""}`);
+
+export const fetchTopFlows = (
+  year?: number,
+  iso3?: string,
+  limit?: number,
+): Promise<TopFlows> => {
+  const params = new URLSearchParams();
+  if (year) params.set("year", String(year));
+  if (iso3) params.set("iso3", iso3);
+  if (limit) params.set("limit", String(limit));
+  const qs = params.toString();
+  return get(`/api/flows/top${qs ? `?${qs}` : ""}`);
+};

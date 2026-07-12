@@ -9,6 +9,8 @@ import type {
   Meta,
   PartnerEntry,
   SectionEntry,
+  TopFlows,
+  WorldSnapshot,
 } from "@world-trade/shared/api";
 import { query } from "./db.ts";
 import { getCatalog } from "./datasets.ts";
@@ -99,6 +101,95 @@ export function createApp(): Hono {
       datasets: catalog.datasets,
     };
     return c.json(meta);
+  });
+
+  app.get("/api/world", async (c) => {
+    const catalog = getCatalog();
+    const year = Number(c.req.query("year") ?? catalog.defaultYear);
+    const yearInfo = catalog.years.find((y) => y.year === year);
+    if (!yearInfo) return c.json({ error: "year out of range" }, 400);
+
+    const rows = await query<{
+      iso3: string;
+      name: string;
+      x: number | null;
+      m: number | null;
+      src: string | null;
+    }>(`
+      SELECT c.iso3, any_value(c.display_name) AS name,
+             sum(t.exports_usd) AS x, sum(t.imports_usd) AS m,
+             min(t.exports_source) AS src
+      FROM v_country_totals t
+      JOIN dim_countries c ON t.country = c.code
+      WHERE t.year = ${year}
+      GROUP BY c.iso3
+    `);
+    const worldRows = await query<{ year: number; v: number }>(`
+      SELECT year, sum(exports_usd) AS v FROM v_country_totals
+      WHERE year IN (${year}, ${year - 1}) GROUP BY year
+    `);
+    const worldNow = worldRows.find((r) => num(r.year) === year);
+    const worldPrev = worldRows.find((r) => num(r.year) === year - 1);
+
+    const snapshot: WorldSnapshot = {
+      year,
+      provisional: yearInfo.provisional,
+      world: {
+        exportsUsd: num(worldNow?.v ?? 0),
+        prevYearExportsUsd: numOrNull(worldPrev?.v),
+        growth:
+          worldNow && worldPrev
+            ? num(worldNow.v) / num(worldPrev.v) - 1
+            : null,
+      },
+      countries: rows.map((r) => {
+        const x = numOrNull(r.x);
+        const m = numOrNull(r.m);
+        return {
+          iso3: r.iso3,
+          name: r.name,
+          exportsUsd: x,
+          importsUsd: m,
+          totalUsd: (x ?? 0) + (m ?? 0),
+          balanceUsd: x != null && m != null ? x - m : null,
+          exportsSource: (r.src as "reported" | "mirror" | null) ?? null,
+        };
+      }),
+    };
+    return c.json(snapshot);
+  });
+
+  app.get("/api/flows/top", async (c) => {
+    const catalog = getCatalog();
+    const year = Number(c.req.query("year") ?? catalog.defaultYear);
+    const yearInfo = catalog.years.find((y) => y.year === year);
+    if (!yearInfo) return c.json({ error: "year out of range" }, 400);
+    const limit = Math.min(
+      Math.max(Number(c.req.query("limit") ?? 30), 1),
+      100,
+    );
+    const iso3 = c.req.query("iso3")?.toUpperCase();
+    if (iso3 && !/^[A-Z]{3}$/.test(iso3)) {
+      return c.json({ error: "invalid iso3" }, 400);
+    }
+
+    const rows = await query<{ f: string; t: string; v: number }>(`
+      SELECT ce.iso3 AS f, ci.iso3 AS t, sum(b.value_usd) AS v
+      FROM v_bilateral b
+      JOIN dim_countries ce ON b.exporter = ce.code
+      JOIN dim_countries ci ON b.importer = ci.code
+      WHERE b.year = ${year}
+      ${iso3 ? `AND (ce.iso3 = '${iso3}' OR ci.iso3 = '${iso3}')` : ""}
+      GROUP BY 1, 2
+      ORDER BY v DESC
+      LIMIT ${limit}
+    `);
+    const flows: TopFlows = {
+      year,
+      provisional: yearInfo.provisional,
+      flows: rows.map((r) => ({ from: r.f, to: r.t, valueUsd: num(r.v) })),
+    };
+    return c.json(flows);
   });
 
   app.get("/api/country/:iso3", async (c) => {

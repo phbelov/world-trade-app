@@ -91,6 +91,43 @@ export interface CountryYearSummary {
   entityNotes: EntityNote[];
 }
 
+export interface WorldCountryEntry {
+  iso3: string;
+  name: string;
+  exportsUsd: number | null;
+  importsUsd: number | null;
+  /** exports + imports treating null as 0; 0 only when both are null-free zeros */
+  totalUsd: number;
+  balanceUsd: number | null;
+  exportsSource: "reported" | "mirror" | null;
+}
+
+export interface WorldSnapshot {
+  year: number;
+  provisional: boolean;
+  world: {
+    exportsUsd: number;
+    prevYearExportsUsd: number | null;
+    /** YoY growth of world exports, e.g. 0.032; null when prev year unavailable */
+    growth: number | null;
+  };
+  countries: WorldCountryEntry[];
+}
+
+export interface FlowEntry {
+  /** Exporter ISO3 */
+  from: string;
+  /** Importer ISO3 */
+  to: string;
+  valueUsd: number;
+}
+
+export interface TopFlows {
+  year: number;
+  provisional: boolean;
+  flows: FlowEntry[];
+}
+
 export interface TrendPoint {
   year: number;
   exportsUsd: number | null;
