@@ -1,11 +1,11 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "installCommand": "pnpm install",
-  "buildCommand": "pnpm --filter @world-trade/web build",
+  "buildCommand": "pnpm --filter @world-trade/web build && pnpm exec esbuild apps/api/src/serverless.ts --bundle --format=esm --platform=node --target=node22 --outfile=api-dist/server.mjs --external:@duckdb/node-api",
   "outputDirectory": "apps/web/dist",
   "framework": null,
   "functions": {
-    "api/index.ts": {
+    "api/index.js": {
       "maxDuration": 60
     }
   },
