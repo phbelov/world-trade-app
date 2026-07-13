@@ -3,39 +3,39 @@
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
 /*
- * Editorial palette: warm paper neutrals, ink typography, and a disciplined
- * two-hue data encoding used consistently everywhere —
- *   exports = deep teal, imports = burnt orange (colorblind-safe pairing).
- * Dark mode is designed, not inverted: same hues, adjusted for luminance.
+ * Minimal system: one family (Inter), two grounds (white / #333),
+ * ink for structure and exports, a single hyperlink-blue accent for
+ * imports, green/red strictly for surplus/deficit. Provisional data is
+ * neutral gray — dashed lines and hollow markers carry that meaning.
  */
 :root {
-  --bg: #faf9f5;
+  --bg: #ffffff;
   --surface: #ffffff;
-  --ink: #1d1c18;
-  --ink-muted: #6f6b60;
-  --line: #e6e3d8;
-  --line-strong: #cfcabb;
-  --export: #0f766e;
-  --import: #c2620e;
-  --positive: #15803d;
-  --negative: #b91c1c;
-  --provisional: #92400e;
-  --provisional-bg: #fef3c7;
+  --ink: #111111;
+  --ink-muted: #757575;
+  --line: #e6e6e6;
+  --line-strong: #b8b8b8;
+  --export: #111111;
+  --import: #1440ff;
+  --positive: #00840a;
+  --negative: #e02020;
+  --provisional: #757575;
+  --provisional-bg: #f2f2f2;
 }
 
 [data-theme="dark"] {
-  --bg: #14161a;
-  --surface: #1b1e24;
-  --ink: #e8e6df;
-  --ink-muted: #98948a;
-  --line: #2a2d35;
-  --line-strong: #3d414c;
-  --export: #2dd4bf;
-  --import: #fb923c;
-  --positive: #4ade80;
-  --negative: #f87171;
-  --provisional: #fbbf24;
-  --provisional-bg: #3a2e12;
+  --bg: #333333;
+  --surface: #333333;
+  --ink: #f5f5f5;
+  --ink-muted: #a8a8a8;
+  --line: #4a4a4a;
+  --line-strong: #757575;
+  --export: #f5f5f5;
+  --import: #8aa6ff;
+  --positive: #5fc768;
+  --negative: #ff6b5e;
+  --provisional: #a8a8a8;
+  --provisional-bg: #3d3d3d;
 }
 
 @theme inline {
@@ -51,8 +51,18 @@
   --color-negative: var(--negative);
   --color-provisional: var(--provisional);
   --color-provisional-bg: var(--provisional-bg);
-  --font-display: "Newsreader Variable", ui-serif, Georgia, serif;
+  --font-display: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
   --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+
+  /* Square everything; rounded-full stays literal for dots and pills. */
+  --radius: 0;
+  --radius-xs: 0;
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+  --radius-xl: 0;
+  --radius-2xl: 0;
+  --radius-3xl: 0;
 }
 
 html {
@@ -69,13 +79,28 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+/* 11px tracked-uppercase metadata label — the system's smallest voice. */
+.label {
+  @apply text-[11px] font-medium uppercase tracking-[0.14em] text-ink-muted;
+}
+
 ::selection {
-  background: color-mix(in oklab, var(--export) 25%, transparent);
+  background: color-mix(in oklab, var(--import) 22%, transparent);
 }
 
 :focus-visible {
-  outline: 2px solid var(--export);
+  outline: 2px solid var(--import);
   outline-offset: 2px;
+}
+
+@keyframes pulse-soft {
+  50% {
+    opacity: 0.45;
+  }
+}
+.skeleton {
+  @apply bg-line;
+  animation: pulse-soft 1.6s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -86,14 +111,4 @@ body {
   * {
     transition-duration: 0.01ms !important;
   }
-}
-
-@keyframes pulse-soft {
-  50% {
-    opacity: 0.45;
-  }
-}
-.skeleton {
-  @apply bg-line rounded;
-  animation: pulse-soft 1.6s ease-in-out infinite;
 }

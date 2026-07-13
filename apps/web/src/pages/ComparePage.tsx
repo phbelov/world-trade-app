@@ -5,6 +5,8 @@ import { extent } from "d3-array";
 import { scaleLinear } from "d3-scale";
 import { line as d3line } from "d3-shape";
 import type { TrendPoint } from "@world-trade/shared/api";
+import { X } from "lucide-react";
+import { Segmented, SelectBox } from "../components/ui.tsx";
 import { fetchMeta, fetchSummary, fetchTrend } from "../lib/api.ts";
 import { fmtBalance, fmtShare, fmtUsd } from "../lib/format.ts";
 import { MEASURES, type Measure } from "../lib/measures.ts";
@@ -194,7 +196,7 @@ export function ComparePage() {
     <div className="mt-8 space-y-8">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="font-display text-4xl font-semibold tracking-tight">
+          <h1 className="text-4xl font-bold tracking-tight">
             Compare countries
           </h1>
           <p className="mt-1 text-sm text-ink-muted">
@@ -204,16 +206,15 @@ export function ComparePage() {
         </div>
         <div className="flex flex-wrap items-center gap-3">
           {meta.data && year != null && (
-            <select
-              aria-label="Select year"
+            <SelectBox
+              label="Select year"
               value={year}
-              onChange={(e) => {
-                const y = Number(e.target.value);
+              onChange={(v) => {
+                const y = Number(v);
                 setSearch({
                   year: y === meta.data!.defaultYear ? undefined : y,
                 });
               }}
-              className="h-9 rounded border border-line bg-surface px-2 text-sm hover:border-line-strong"
             >
               {[...meta.data.years].reverse().map((y) => (
                 <option key={y.year} value={y.year}>
@@ -221,29 +222,15 @@ export function ComparePage() {
                   {y.provisional ? " (provisional)" : ""}
                 </option>
               ))}
-            </select>
+            </SelectBox>
           )}
-          <div className="flex rounded border border-line bg-surface p-0.5">
-            {MEASURES.map((m) => (
-              <button
-                key={m.id}
-                type="button"
-                onClick={() =>
-                  setSearch({
-                    measure: m.id === "exports" ? undefined : m.id,
-                  })
-                }
-                aria-pressed={measure === m.id}
-                className={`rounded px-3 py-1.5 text-sm transition-colors ${
-                  measure === m.id
-                    ? "bg-line/70 font-medium text-ink"
-                    : "text-ink-muted hover:text-ink"
-                }`}
-              >
-                {m.label}
-              </button>
-            ))}
-          </div>
+          <Segmented
+            options={MEASURES.map((m) => ({ id: m.id, label: m.label }))}
+            value={measure}
+            onChange={(id) =>
+              setSearch({ measure: id === "exports" ? undefined : id })
+            }
+          />
         </div>
       </header>
 
@@ -254,7 +241,7 @@ export function ComparePage() {
           return (
             <span
               key={iso3}
-              className="flex items-center gap-1.5 rounded-full border border-line bg-surface py-1 pl-3 pr-1.5 text-sm"
+              className="flex items-center gap-1.5 rounded-full border border-line py-1 pl-3 pr-1.5 text-sm"
             >
               {name}
               <button
@@ -265,9 +252,9 @@ export function ComparePage() {
                     countries: isoList.filter((c) => c !== iso3).join(","),
                   })
                 }
-                className="rounded-full px-1.5 text-ink-muted hover:text-ink"
+                className="rounded-full px-1 text-ink-muted hover:text-ink"
               >
-                ×
+                <X size={12} />
               </button>
             </span>
           );
@@ -298,7 +285,7 @@ export function ComparePage() {
             type="checkbox"
             checked={sharedScale}
             onChange={(e) => setSharedScale(e.target.checked)}
-            className="accent-(--export)"
+            className="accent-(--ink)"
           />
           Shared scale
         </label>
@@ -315,7 +302,7 @@ export function ComparePage() {
           return (
             <div
               key={iso3}
-              className="rounded border border-line bg-surface p-4"
+              className="border border-line p-4"
             >
               <div className="flex items-baseline justify-between gap-2">
                 <Link

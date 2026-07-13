@@ -33,9 +33,7 @@ export function RankedBars({
   const barClass = color === "export" ? "bg-export" : "bg-import";
   return (
     <section>
-      <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-muted">
-        {title}
-      </h3>
+      <h3 className="label">{title}</h3>
       {subtitle && <p className="mt-0.5 text-xs text-ink-muted">{subtitle}</p>}
       {shown.length === 0 ? (
         <p className="mt-3 text-sm text-ink-muted">No data reported.</p>
@@ -64,9 +62,9 @@ export function RankedBars({
                     </span>
                   </span>
                 </div>
-                <div className="mt-1 h-1.5 w-full rounded-full bg-line/60">
+                <div className="mt-1 h-1 w-full bg-line/60">
                   <div
-                    className={`h-full rounded-full ${barClass} opacity-80`}
+                    className={`h-full ${barClass} opacity-80`}
                     style={{ width: `${(r.share / maxShare) * 100}%` }}
                   />
                 </div>

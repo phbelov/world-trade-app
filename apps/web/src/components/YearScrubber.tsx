@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Pause, Play } from "lucide-react";
 import type { YearInfo } from "@world-trade/shared/api";
 
 interface Props {
@@ -41,9 +42,9 @@ export function YearScrubber({ years, value, onChange }: Props) {
           setPlaying((p) => !p);
         }}
         aria-label={playing ? "Pause" : "Play through years"}
-        className="h-9 w-9 shrink-0 rounded-full border border-line bg-surface text-sm hover:border-line-strong"
+        className="flex h-8 w-8 shrink-0 items-center justify-center border border-line bg-bg text-ink-muted hover:border-line-strong hover:text-ink"
       >
-        {playing ? "⏸" : "▶"}
+        {playing ? <Pause size={13} /> : <Play size={13} />}
       </button>
       <span className="w-10 shrink-0 text-xs text-ink-muted tnum">{min}</span>
       <input
@@ -57,7 +58,7 @@ export function YearScrubber({ years, value, onChange }: Props) {
           onChange(Number(e.target.value));
         }}
         aria-label="Year"
-        className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-line accent-(--export)"
+        className="h-px w-full cursor-pointer appearance-none rounded-full bg-line-strong accent-(--ink)"
       />
       <span className="w-10 shrink-0 text-xs text-ink-muted tnum">{max}</span>
       <span className="shrink-0 text-sm font-semibold tnum">

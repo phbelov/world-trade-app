@@ -21,10 +21,8 @@ function MetricCard({
   explainer: string;
 }) {
   return (
-    <div className="rounded border border-line bg-surface p-4">
-      <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-muted">
-        {label}
-      </div>
+    <div className="border-t border-line pt-3">
+      <div className="label">{label}</div>
       <div className="mt-1.5 text-lg font-medium tnum">{value}</div>
       {detail && <div className="text-sm text-ink-muted tnum">{detail}</div>}
       <p className="mt-2 text-xs leading-relaxed text-ink-muted">{explainer}</p>
@@ -44,8 +42,8 @@ export function IntelligencePanel({
 }) {
   if (summary.provisional) {
     return (
-      <section className="rounded border border-line bg-surface p-5 text-sm text-ink-muted">
-        <h2 className="font-display text-xl font-semibold text-ink">
+      <section className="border border-dashed border-line-strong p-5 text-sm text-ink-muted">
+        <h2 className="text-lg font-semibold tracking-tight text-ink">
           Dependencies &amp; concentration
         </h2>
         <p className="mt-2 leading-relaxed">
@@ -59,9 +57,12 @@ export function IntelligencePanel({
   const m = summary.metrics;
   return (
     <section>
-      <h2 className="font-display text-xl font-semibold">
-        Dependencies &amp; concentration
-      </h2>
+      <div className="border-t border-line pt-3 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
+        <h2 className="text-lg font-semibold tracking-tight">
+          Dependencies &amp; concentration
+        </h2>
+        <span className="label">Analysis</span>
+      </div>
       {m ? (
         <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <MetricCard
@@ -96,15 +97,13 @@ export function IntelligencePanel({
       )}
 
       <div className="mt-6">
-        <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-muted">
-          Concentrated import dependencies
-        </h3>
+        <h3 className="label">Concentrated import dependencies</h3>
         <p className="mt-0.5 text-xs text-ink-muted">
           Products where at least half of imports come from a single supplier
           (minimum $5M). Largest first.
         </p>
         {summary.dependencies && summary.dependencies.length > 0 ? (
-          <ul className="mt-3 divide-y divide-line rounded border border-line bg-surface">
+          <ul className="mt-3 divide-y divide-line border-t border-b border-line">
             {summary.dependencies.map((d) => (
               <li
                 key={d.hs6}
@@ -128,7 +127,7 @@ export function IntelligencePanel({
                   to="/pair/$a/$b"
                   params={{ a: summary.iso3, b: d.supplierIso3 }}
                   search={{ year: summary.year }}
-                  className="shrink-0 rounded bg-provisional-bg px-2 py-1 text-xs font-medium text-provisional tnum hover:opacity-80"
+                  className="shrink-0 border border-line px-2 py-1 text-xs font-medium text-negative tnum hover:border-line-strong"
                 >
                   {fmtShare(d.share)} from {d.supplierName}
                 </Link>

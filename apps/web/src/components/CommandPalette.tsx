@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { Search } from "lucide-react";
 import { fetchMeta, searchProducts } from "../lib/api.ts";
 
 type Item =
@@ -93,10 +94,11 @@ export function CommandPalette() {
       <button
         type="button"
         onClick={open}
-        className="flex h-9 items-center gap-2 rounded border border-line bg-surface px-3 text-sm text-ink-muted hover:border-line-strong hover:text-ink transition-colors"
+        className="flex h-8 items-center gap-2 border border-line bg-bg px-3 text-[11px] font-medium uppercase tracking-[0.14em] text-ink-muted hover:border-line-strong hover:text-ink transition-colors"
       >
-        <span>Search countries &amp; products</span>
-        <kbd className="rounded border border-line px-1.5 py-0.5 text-[10px] font-medium">
+        <Search size={12} />
+        <span className="hidden sm:inline">Search</span>
+        <kbd className="text-[10px] font-medium normal-case tracking-normal">
           ⌘K
         </kbd>
       </button>
@@ -105,7 +107,7 @@ export function CommandPalette() {
         onClick={(e) => {
           if (e.target === dialogRef.current) dialogRef.current.close();
         }}
-        className="fixed inset-0 m-auto h-fit w-full max-w-lg rounded-lg border border-line bg-surface p-0 text-ink shadow-xl backdrop:bg-black/45 backdrop:backdrop-blur-[2px]"
+        className="fixed inset-0 m-auto h-fit w-full max-w-lg border border-line-strong bg-bg p-0 text-ink backdrop:bg-black/50"
       >
         <div className="p-2">
           <input
@@ -131,7 +133,7 @@ export function CommandPalette() {
             role="combobox"
             aria-expanded="true"
             aria-controls="palette-results"
-            className="w-full rounded border border-line bg-bg px-3 py-2.5 text-sm outline-none focus:border-line-strong"
+            className="w-full border-b border-line bg-bg px-3 py-2.5 text-sm outline-none focus:border-line-strong"
           />
           <ul
             id="palette-results"
@@ -141,20 +143,16 @@ export function CommandPalette() {
             {items.map((item, i) => (
               <li key={`${item.kind}-${item.key}`} role="option" aria-selected={i === active}>
                 {i === firstProductIdx && (
-                  <div className="mt-1 px-3 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-ink-muted">
-                    Products
-                  </div>
+                  <div className="label mt-1 px-3 pb-1 pt-2">Products</div>
                 )}
                 {i === 0 && item.kind === "country" && trimmed.length >= 2 && (
-                  <div className="px-3 pb-1 pt-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-ink-muted">
-                    Countries
-                  </div>
+                  <div className="label px-3 pb-1 pt-1">Countries</div>
                 )}
                 <button
                   type="button"
                   onClick={() => go(item)}
                   onMouseEnter={() => setActive(i)}
-                  className={`flex w-full items-center justify-between gap-3 rounded px-3 py-2 text-left text-sm ${
+                  className={`flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm ${
                     i === active ? "bg-line/60" : ""
                   }`}
                 >

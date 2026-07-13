@@ -4,49 +4,17 @@ import type { CountryYearSummary, Meta } from "@world-trade/shared/api";
 import { IntelligencePanel } from "../components/IntelligencePanel.tsx";
 import { RankedBars } from "../components/RankedBars.tsx";
 import { TrendChart } from "../components/TrendChart.tsx";
+import {
+  ErrorState,
+  Label,
+  SectionHeader,
+  SelectBox,
+  Stat,
+} from "../components/ui.tsx";
 import { ApiError, fetchMeta, fetchSummary, fetchTrend } from "../lib/api.ts";
 import { fmtBalance, fmtRank, fmtUsd, fmtUsdExact } from "../lib/format.ts";
 import { usePageTitle } from "../lib/title.ts";
 import { countryRoute } from "../router.tsx";
-
-function Stat({
-  label,
-  value,
-  valueTitle,
-  detail,
-  tone,
-}: {
-  label: string;
-  value: string;
-  valueTitle?: string | undefined;
-  detail?: string | undefined;
-  tone?: "export" | "import" | "positive" | "negative" | undefined;
-}) {
-  const toneClass =
-    tone === "export"
-      ? "text-export"
-      : tone === "import"
-        ? "text-import"
-        : tone === "positive"
-          ? "text-positive"
-          : tone === "negative"
-            ? "text-negative"
-            : "";
-  return (
-    <div>
-      <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-muted">
-        {label}
-      </div>
-      <div
-        className={`mt-1 text-2xl font-semibold tnum ${toneClass}`}
-        title={valueTitle}
-      >
-        {value}
-      </div>
-      {detail && <div className="mt-0.5 text-xs text-ink-muted">{detail}</div>}
-    </div>
-  );
-}
 
 function YearSelect({
   meta,
@@ -59,18 +27,17 @@ function YearSelect({
 }) {
   const navigate = useNavigate();
   return (
-    <select
-      aria-label="Select year"
+    <SelectBox
+      label="Select year"
       value={year}
-      onChange={(e) => {
-        const y = Number(e.target.value);
+      onChange={(v) => {
+        const y = Number(v);
         navigate({
           to: "/country/$iso3",
           params: { iso3 },
           search: y === meta.defaultYear ? {} : { year: y },
         });
       }}
-      className="h-9 rounded border border-line bg-surface px-2 text-sm hover:border-line-strong focus:outline-2 focus:outline-export"
     >
       {[...meta.years].reverse().map((y) => (
         <option key={y.year} value={y.year}>
@@ -78,13 +45,13 @@ function YearSelect({
           {y.provisional ? " (provisional)" : ""}
         </option>
       ))}
-    </select>
+    </SelectBox>
   );
 }
 
 function ProvisionalBanner({ summary }: { summary: CountryYearSummary }) {
   return (
-    <div className="rounded border border-provisional/30 bg-provisional-bg px-4 py-3 text-sm leading-relaxed text-provisional">
+    <div className="border border-dashed border-line-strong px-4 py-3 text-sm leading-relaxed text-ink-muted">
       <strong>{summary.year} is provisional.</strong>{" "}
       {summary.exportsSource === "mirror" ? (
         <>
@@ -146,25 +113,15 @@ export function CountryPage() {
     const err = summary.error;
     const notFound = err instanceof ApiError && err.status === 404;
     return (
-      <div className="mx-auto mt-24 max-w-md text-center">
-        <h1 className="font-display text-3xl font-semibold">
-          {notFound ? "Unknown country" : "Something went wrong"}
-        </h1>
-        <p className="mt-3 text-sm leading-relaxed text-ink-muted">
-          {notFound
-            ? `“${iso3}” doesn't match any country in the dataset. Pick one from the selector above.`
-            : "The data service could not be reached. Your connection or the server may be down."}
-        </p>
-        {!notFound && (
-          <button
-            type="button"
-            onClick={() => summary.refetch()}
-            className="mt-5 rounded border border-line bg-surface px-4 py-2 text-sm font-medium hover:border-line-strong"
-          >
-            Try again
-          </button>
-        )}
-      </div>
+      <ErrorState
+        title={notFound ? "Unknown country" : "Something went wrong"}
+        message={
+          notFound
+            ? `“${iso3}” doesn't match any country in the dataset. Use search to find one.`
+            : "The data service could not be reached. Your connection or the server may be down."
+        }
+        onRetry={notFound ? undefined : () => summary.refetch()}
+      />
     );
   }
 
@@ -176,10 +133,10 @@ export function CountryPage() {
     <div className="mt-8 space-y-10">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="font-display text-4xl font-semibold tracking-tight sm:text-5xl">
+          <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
             {s.name}
           </h1>
-          <p className="mt-1 text-sm text-ink-muted">
+          <p className="label mt-2">
             Goods trade · {s.year}
             {s.provisional && " · provisional"}
           </p>
@@ -192,7 +149,7 @@ export function CountryPage() {
       {s.provisional && <ProvisionalBanner summary={s} />}
 
       {!hasData ? (
-        <div className="rounded border border-line bg-surface px-5 py-8 text-center">
+        <div className="border border-line px-5 py-8 text-center">
           <p className="font-medium">
             No trade reported for {s.name} in {s.year}.
           </p>
@@ -210,7 +167,7 @@ export function CountryPage() {
               valueTitle={
                 t.exportsUsd != null ? fmtUsdExact(t.exportsUsd) : "Not reported"
               }
-              detail={
+              note={
                 t.exportRank != null
                   ? `${fmtRank(t.exportRank)} of ${t.rankedCountries} exporters`
                   : undefined
@@ -223,7 +180,7 @@ export function CountryPage() {
               valueTitle={
                 t.importsUsd != null ? fmtUsdExact(t.importsUsd) : "Not reported"
               }
-              detail={
+              note={
                 t.importRank != null
                   ? `${fmtRank(t.importRank)} of ${t.rankedCountries} importers`
                   : undefined
@@ -238,7 +195,7 @@ export function CountryPage() {
                   ? fmtUsdExact(t.balanceUsd)
                   : "Needs both flows"
               }
-              detail={
+              note={
                 t.balanceUsd != null
                   ? t.balanceUsd >= 0
                     ? "trade surplus"
@@ -256,9 +213,7 @@ export function CountryPage() {
           </div>
 
           <section>
-            <h2 className="font-display text-xl font-semibold">
-              Three decades of trade
-            </h2>
+            <SectionHeader title="Three decades of trade" annotation="Trend" />
             <div className="mt-4">
               {trend.isPending ? (
                 <div className="skeleton h-72 w-full" />

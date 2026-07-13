@@ -2,7 +2,9 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import type { PairDirection, PairSummary } from "@world-trade/shared/api";
+import { ArrowLeftRight } from "lucide-react";
 import { TrendChart } from "../components/TrendChart.tsx";
+import { SectionHeader, SelectBox } from "../components/ui.tsx";
 import { ApiError, fetchMeta, fetchPair, fetchPairTrend } from "../lib/api.ts";
 import { fmtShare, fmtUsd, fmtUsdExact } from "../lib/format.ts";
 import { usePageTitle } from "../lib/title.ts";
@@ -31,9 +33,7 @@ function DirectionColumn({
   const shown = filtered.slice(0, limit);
   return (
     <section className="min-w-0">
-      <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-muted">
-        {from} sells {to}
-      </h3>
+      <h3 className="label">{from} sells {to}</h3>
       <div className="mt-1 flex items-baseline gap-3">
         <span className="text-2xl font-semibold tnum text-export">
           {direction.totalUsd != null ? fmtUsd(direction.totalUsd) : "—"}
@@ -54,9 +54,9 @@ function DirectionColumn({
             }}
             placeholder={`Filter ${direction.productCount.toLocaleString()} products…`}
             aria-label={`Filter products ${from} sells ${to}`}
-            className="mt-3 w-full rounded border border-line bg-surface px-3 py-1.5 text-sm outline-none focus:border-line-strong"
+            className="mt-3 w-full border border-line bg-bg px-3 py-1.5 text-sm outline-none focus:border-line-strong"
           />
-          <ul className="mt-2 divide-y divide-line rounded border border-line bg-surface">
+          <ul className="mt-2 divide-y divide-line border-t border-b border-line">
             {shown.map((p) => (
               <li key={p.code}>
                 <Link
@@ -90,7 +90,7 @@ function DirectionColumn({
             <button
               type="button"
               onClick={() => setLimit((l) => l + 25)}
-              className="mt-2 w-full rounded border border-line bg-surface py-1.5 text-xs font-medium text-ink-muted hover:border-line-strong hover:text-ink"
+              className="mt-2 w-full border border-line bg-bg py-1.5 text-[11px] font-medium uppercase tracking-[0.14em] text-ink-muted hover:border-line-strong hover:text-ink"
             >
               Show more ({filtered.length - limit} remaining
               {direction.productCount > direction.products.length
@@ -168,7 +168,7 @@ export function PairPage() {
     <div className="mt-8 space-y-10">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">
+          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
             <Link
               to="/country/$iso3"
               params={{ iso3: s.a.iso3 }}
@@ -187,9 +187,9 @@ export function PairPage() {
                   search: (prev) => prev,
                 })
               }
-              className="mx-3 align-middle text-2xl text-ink-muted hover:text-ink"
+              className="mx-3 inline-flex align-middle text-ink-muted hover:text-ink"
             >
-              ⇄
+              <ArrowLeftRight size={20} />
             </button>
             <Link
               to="/country/$iso3"
@@ -199,24 +199,23 @@ export function PairPage() {
               {s.b.name}
             </Link>
           </h1>
-          <p className="mt-1 text-sm text-ink-muted">
+          <p className="label mt-2">
             Bilateral goods trade · {s.year}
             {s.provisional && " · provisional (chapter-level detail)"}
           </p>
         </div>
         {meta.data && (
-          <select
-            aria-label="Select year"
+          <SelectBox
+            label="Select year"
             value={s.year}
-            onChange={(e) => {
-              const y = Number(e.target.value);
+            onChange={(v) => {
+              const y = Number(v);
               navigate({
                 to: "/pair/$a/$b",
                 params: { a, b },
                 search: y === meta.data!.defaultYear ? {} : { year: y },
               });
             }}
-            className="h-9 rounded border border-line bg-surface px-2 text-sm hover:border-line-strong"
           >
             {[...meta.data.years].reverse().map((y) => (
               <option key={y.year} value={y.year}>
@@ -224,15 +223,13 @@ export function PairPage() {
                 {y.provisional ? " (provisional)" : ""}
               </option>
             ))}
-          </select>
+          </SelectBox>
         )}
       </header>
 
       <div className="flex flex-wrap gap-x-14 gap-y-4 text-sm">
         <div>
-          <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-muted">
-            Balance for {s.a.name}
-          </div>
+          <div className="label">Balance for {s.a.name}</div>
           <div
             className={`mt-1 text-2xl font-semibold tnum ${
               balance == null
@@ -250,9 +247,7 @@ export function PairPage() {
       </div>
 
       <section>
-        <h2 className="font-display text-xl font-semibold">
-          The relationship over time
-        </h2>
+        <SectionHeader title="The relationship over time" annotation="Trend" />
         <div className="mt-4">
           {trend.isPending ? (
             <div className="skeleton h-64 w-full" />

@@ -1,8 +1,10 @@
 import { Suspense, lazy } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
+import { X } from "lucide-react";
 import type { WorldCountryEntry } from "@world-trade/shared/api";
 import { YearScrubber } from "../components/YearScrubber.tsx";
+import { Segmented } from "../components/ui.tsx";
 import { fetchMeta, fetchTopFlows, fetchWorld } from "../lib/api.ts";
 import { fmtBalance, fmtShare, fmtUsd, fmtUsdExact } from "../lib/format.ts";
 import { MEASURES, measureValue, type Measure } from "../lib/measures.ts";
@@ -34,9 +36,7 @@ function RankedList({
   const label = MEASURES.find((m) => m.id === measure)!.label;
   return (
     <section>
-      <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-muted">
-        Leaders · {label}
-      </h3>
+      <h3 className="label">Leaders · {label}</h3>
       <ol className="mt-3 space-y-2">
         {rows.map(({ c, v }, i) => (
           <li key={c.iso3}>
@@ -56,9 +56,9 @@ function RankedList({
                   {measure === "balance" ? fmtBalance(v) : fmtUsd(v)}
                 </span>
               </div>
-              <div className="ml-6 mt-1 h-1 rounded-full bg-line/60">
+              <div className="ml-6 mt-1 h-1 bg-line/60">
                 <div
-                  className={`h-full rounded-full opacity-80 ${
+                  className={`h-full opacity-80 ${
                     measure === "balance" && v < 0 ? "bg-import" : "bg-export"
                   }`}
                   style={{ width: `${(Math.abs(v) / maxV) * 100}%` }}
@@ -86,18 +86,18 @@ function SelectedPanel({
   const outbound = flows.filter((f) => f.from === entry.iso3).slice(0, 5);
   const inbound = flows.filter((f) => f.to === entry.iso3).slice(0, 5);
   return (
-    <section className="rounded border border-line bg-surface p-4">
+    <section className="border border-line p-4">
       <div className="flex items-start justify-between gap-2">
-        <h3 className="font-display text-2xl font-semibold leading-tight">
+        <h3 className="text-xl font-bold leading-tight tracking-tight">
           {entry.name}
         </h3>
         <button
           type="button"
           onClick={onClear}
           aria-label="Clear selection"
-          className="rounded px-1.5 text-lg leading-none text-ink-muted hover:text-ink"
+          className="px-1 text-ink-muted hover:text-ink"
         >
-          ×
+          <X size={14} />
         </button>
       </div>
       <dl className="mt-3 space-y-1.5 text-sm tnum">
@@ -141,9 +141,9 @@ function SelectedPanel({
         to="/country/$iso3"
         params={{ iso3: entry.iso3 }}
         search={year ? { year } : {}}
-        className="mt-4 block rounded border border-line px-3 py-2 text-center text-sm font-medium hover:border-line-strong"
+        className="mt-4 block border border-line px-3 py-2 text-center text-[11px] font-medium uppercase tracking-[0.14em] hover:border-line-strong before:content-['['] after:content-[']']"
       >
-        Open full profile →
+        &nbsp;Open full profile&nbsp;
       </Link>
     </section>
   );
@@ -227,7 +227,7 @@ export function WorldPage() {
     <div className="mt-8 space-y-6">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="font-display text-4xl font-semibold tracking-tight">
+          <h1 className="text-4xl font-bold tracking-tight">
             The world in trade
           </h1>
           <p className="mt-1.5 text-sm text-ink-muted tnum">
@@ -251,23 +251,11 @@ export function WorldPage() {
             )}
           </p>
         </div>
-        <div className="flex rounded border border-line bg-surface p-0.5">
-          {MEASURES.map((m) => (
-            <button
-              key={m.id}
-              type="button"
-              onClick={() => setSearch({ measure: m.id })}
-              aria-pressed={measure === m.id}
-              className={`rounded px-3 py-1.5 text-sm transition-colors ${
-                measure === m.id
-                  ? "bg-line/70 font-medium text-ink"
-                  : "text-ink-muted hover:text-ink"
-              }`}
-            >
-              {m.label}
-            </button>
-          ))}
-        </div>
+        <Segmented
+          options={MEASURES.map((m) => ({ id: m.id, label: m.label }))}
+          value={measure}
+          onChange={(id) => setSearch({ measure: id })}
+        />
       </header>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_300px]">

@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { RankedBars } from "../components/RankedBars.tsx";
+import { SectionHeader, SelectBox, Stat } from "../components/ui.tsx";
 import { TrendChart } from "../components/TrendChart.tsx";
 import {
   ApiError,
@@ -95,59 +96,45 @@ export function ProductPage() {
               </>
             )}
           </nav>
-          <h1 className="mt-1 font-display text-3xl font-semibold leading-tight tracking-tight">
+          <h1 className="mt-1 text-3xl font-bold leading-tight tracking-tight">
             {s.info.name}
           </h1>
-          <p className="mt-1 text-sm text-ink-muted tnum">
+          <p className="label mt-2 tnum">
             {levelLabel} {s.info.code} · {s.year}
           </p>
         </div>
-        <select
-          aria-label="Select year"
+        <SelectBox
+          label="Select year"
           value={s.year}
-          onChange={(e) => {
-            const y = Number(e.target.value);
+          onChange={(v) => {
+            const y = Number(v);
             navigate({
               to: "/product/$code",
               params: { code },
               search: y === lastReconciled ? {} : { year: y },
             });
           }}
-          className="h-9 rounded border border-line bg-surface px-2 text-sm hover:border-line-strong"
         >
           {[...reconciledYears].reverse().map((y) => (
             <option key={y.year} value={y.year}>
               {y.year}
             </option>
           ))}
-        </select>
+        </SelectBox>
       </header>
 
       <div className="flex flex-wrap gap-x-14 gap-y-6">
-        <div>
-          <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-muted">
-            World trade
-          </div>
-          <div
-            className="mt-1 text-2xl font-semibold tnum"
-            title={fmtUsdExact(s.worldTradeUsd)}
-          >
-            {fmtUsd(s.worldTradeUsd)}
-          </div>
-        </div>
+        <Stat
+          label="World trade"
+          value={fmtUsd(s.worldTradeUsd)}
+          valueTitle={fmtUsdExact(s.worldTradeUsd)}
+        />
         {s.unitValueUsdPerTonne != null && (
-          <div>
-            <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-muted">
-              Unit value
-            </div>
-            <div className="mt-1 text-2xl font-semibold tnum">
-              ${Math.round(s.unitValueUsdPerTonne).toLocaleString()}/t
-            </div>
-            <div className="mt-0.5 text-xs text-ink-muted">
-              tonnage reported for {fmtShare(s.quantityValueCoverage ?? 0)} of
-              trade value
-            </div>
-          </div>
+          <Stat
+            label="Unit value"
+            value={`$${Math.round(s.unitValueUsdPerTonne).toLocaleString()}/t`}
+            note={`tonnage reported for ${fmtShare(s.quantityValueCoverage ?? 0)} of trade value`}
+          />
         )}
       </div>
 
@@ -159,9 +146,10 @@ export function ProductPage() {
       )}
 
       <section>
-        <h2 className="font-display text-xl font-semibold">
-          World trade since {trend.data?.points[0]?.year ?? 1995}
-        </h2>
+        <SectionHeader
+          title={`World trade since ${trend.data?.points[0]?.year ?? 1995}`}
+          annotation="Trend"
+        />
         <div className="mt-4">
           {trend.isPending ? (
             <div className="skeleton h-64 w-full" />
@@ -215,10 +203,8 @@ export function ProductPage() {
       </div>
 
       <section>
-        <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-muted">
-          Largest trade routes
-        </h3>
-        <ul className="mt-3 divide-y divide-line rounded border border-line bg-surface">
+        <h3 className="label">Largest trade routes</h3>
+        <ul className="mt-3 divide-y divide-line border-t border-b border-line">
           {s.topRoutes.map((r) => (
             <li key={`${r.fromIso3}-${r.toIso3}`}>
               <Link
